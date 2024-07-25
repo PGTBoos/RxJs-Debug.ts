@@ -28,6 +28,6 @@ by putting in between `tap(value => {console.log('Spy:', value);}` everywhere.
 As that would run in production as well, this checks if its running in debug mode.  
 I gues maybe in some edge case you still like to use tap, but with this it can be a lot less.  
 
-#You made it till here
+# You made it till here
 Wow that's great, people actually reading my posts.. perhaps i should start a blog
 I wish you a good day, and i hope your angular problems get solved, have luck!
