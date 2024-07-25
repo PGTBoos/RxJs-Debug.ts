@@ -13,8 +13,9 @@ There are 2 commands:
  - `RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' )`
  - `RxJsDebugFlow(RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})`
 
-The first command, you can use basically to replace tap to console logging, though this one runs in devmode only.
-The Seccond does log basic life cycle into as well (verry basic sorry)
+The first command, you can use basically to replace tap to console logging, though this one runs in devmode only.  
+The Seccond is more an extention and does log basic life cycle info as well (verry basic sorry)
+I wanted to have 2 so it's more clear essentially the seccond can do both its more an extension.
 
 
 # Installation
