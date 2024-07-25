@@ -1,5 +1,5 @@
 # Angular RxJs-Debug.ts
-RxJs console debug (simple)
+RxJs console debug (simple), log only in devmode
 
 I've created this script as a simple tool that can be used in place of tap and console.log commands
 With the bennefit that this command only works in developer mode.
