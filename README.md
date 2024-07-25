@@ -1,4 +1,4 @@
-# RxJs-Debug.ts
+# Angular RxJs-Debug.ts
 RxJs console debug (simple)
 
 I've created this script as a simple tool that can be used in place of tap and console.log commands
