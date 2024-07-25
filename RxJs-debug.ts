@@ -15,15 +15,14 @@ export type ExtraNotifications = {
   finalize?: boolean;
 }
 
-const enableRxJsLogging = true;  // This can be toggled by code
+const enableRxJsLogging = true;  // This can be toggled by altering code here and so be disabled for debug mode
 
 let rxjsLoggingLevel = RxJsLoggingLevel.NONE;
 
 export function setRxJsLoggingLevel(level: RxJsLoggingLevel) {
   rxjsLoggingLevel = level;
 }
-
-/**
+ /**
    * Logs debug information for the given observable, but only in debug mode.
    * @param level - The logging level.
    * @param message - The log message.
@@ -66,15 +65,10 @@ export function setRxJsLoggingLevel(level: RxJsLoggingLevel) {
         })
       );
   }
-
-
-
-
-
 /**
  * Enhances RxJS debugging capabilities by providing detailed logging for observable streams, including subscription, unsubscription, and finalization events. This function is an extension of `RxJsDebug`, offering deeper insights into the observable lifecycle.
  *
- * Unlike `RxJsDebug`, which focuses on logging the values emitted by an observable, `RxJsDebugDeep` allows for more granular control over what gets logged. It supports additional notifications for subscribe, unsubscribe, and finalize events, providing a comprehensive view of the observable's lifecycle. This is particularly useful for tracking down memory leaks or understanding complex subscription chains.
+ * Unlike `RxJsDebug`, which focuses on logging the values emitted by an observable, `RxJsDebugFlow` allows for more granular control over what gets logged. It supports additional notifications for subscribe, unsubscribe, and finalize events, providing a comprehensive view of the observable's lifecycle. This is particularly useful for tracking down memory leaks or understanding complex subscription chains.
  *
  * @param level - The logging level. Determines the verbosity of the logs.
  * @param message - A message to prefix the logs with, providing context.
@@ -85,7 +79,7 @@ export function setRxJsLoggingLevel(level: RxJsLoggingLevel) {
  * @example
  * // To log detailed information about an observable including when it is subscribed to and finalized:
  * observable.pipe(
- *   RxJsDebugDeep(RxJsLoggingLevel.DEBUG, 'some text of waht you debug:', false, {subscribe: true, finalize: true})
+ *   RxJsDebugFlow(RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})
  * );
  */
  export function RxJsDebugFlow<T>(level: RxJsLoggingLevel, message: string, includeStackTrace: boolean = false, extraNotifications?: ExtraNotifications) {
@@ -141,3 +135,6 @@ export function setRxJsLoggingLevel(level: RxJsLoggingLevel) {
     })
   );
 }
+
+
+ 
