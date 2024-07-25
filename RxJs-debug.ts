@@ -88,7 +88,7 @@ export function setRxJsLoggingLevel(level: RxJsLoggingLevel) {
  *   RxJsDebugDeep(RxJsLoggingLevel.DEBUG, 'some text of waht you debug:', false, {subscribe: true, finalize: true})
  * );
  */
- export function RxJsDebugDeep<T>(level: RxJsLoggingLevel, message: string, includeStackTrace: boolean = false, extraNotifications?: ExtraNotifications) {
+ export function RxJsDebugFlow<T>(level: RxJsLoggingLevel, message: string, includeStackTrace: boolean = false, extraNotifications?: ExtraNotifications) {
   const formatNotif = (notif: string, data?: unknown) => [
     new Date().toISOString(),
     `[${message}: ${notif}]`,
