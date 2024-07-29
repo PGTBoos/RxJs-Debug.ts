@@ -9,9 +9,9 @@ A state log service, and debugging logging that logs to console in devmode only 
 This logs all the store events.
 Depending on your code this logging might overwhelm you, so maybe you only want RxJs-debug.ts
 To use it :
-1. This service needs be be added in **app.module.ts** as a provider, alike `provider :[NgRxDebugService]`
+1. This service needs be be added in **app.module.ts** as a provider, alike `provider :[NgRxDebugService]` and an import.
 2. Then in **app.component.ts**
-   1. import it `{NgRxDebugService} from "./utils/NgRx-Debug.service";`
+   1. import it `{NgRxDebugService} from "./utils/NgRx-Debug.service";` (from where you saved this in your project)
    2. inside the constructor add a `private ngRxDebugService: NgRxDebugService` 
    3. inside ngOninit add  `if(isDevMode()){    this.ngRxDebugService.init();}`
       
@@ -28,8 +28,12 @@ And you would not want to log all that info in a production environment.
 Hence this code was created.   
 
 There are 2 commands:  
- - `RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' )`
- - `RxJsDebugFlow(RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})`  
+ - ```Java
+   RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' )
+   ```
+ - ```Java
+   RxJsDebugFlow(RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})`
+   ```
 
 The first command, you can use basically to replace tap to console logging, though this one runs in devmode only.   
 The Second is more an extention and does log basic life cycle info as well (verry basic sorry)  
