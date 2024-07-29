@@ -1,3 +1,13 @@
+#NgRx-Debug.service.ts
+This logs all the store events, (it might overwhelm you so maybe you only want RxJs-debug.ts
+To use it :
+1. This service needs be be added in **app.module.ts** as a provider `provider :[NgRxDebugService]`
+2. Then in **app.component.ts**
+   1. import it `{NgRxDebugService} from "./utils/NgRx-Debug.service";`
+   2. inside the constructor add a `private ngRxDebugService: NgRxDebugService` 
+   3. inside ngOninit add  `if(isDevMode()){    this.ngRxDebugService.init();}`
+      
+
 # Angular RxJs-Debug.ts
 RxJs console debug (simple), log only in devmode  
 
