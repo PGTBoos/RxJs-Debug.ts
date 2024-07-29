@@ -1,4 +1,9 @@
-# NgRx-Debug.service.ts
+# Debuging RXJS can be hard.
+As i've found trying to fix other left perons's code, rxjs isnt easy to get a grip of when things go wrong, especially if your not the disigner of the code you work on.
+I dont feel myself an expert in this area, though i was able to create a few helpfull tools.
+A state log service, and debugging logging that logs to console in devmode only with some level setting.
+
+## NgRx-Debug.service.ts
 This logs all the store events, (it might overwhelm you so maybe you only want RxJs-debug.ts
 To use it :
 1. This service needs be be added in **app.module.ts** as a provider `provider :[NgRxDebugService]`
@@ -8,7 +13,7 @@ To use it :
    3. inside ngOninit add  `if(isDevMode()){    this.ngRxDebugService.init();}`
       
 
-# Angular RxJs-Debug.ts
+## Angular RxJs-Debug.ts
 RxJs console debug (simple), log only in devmode  
 
 I've created this script as a simple tool that can be used in place of tap and console.log commands  
@@ -28,17 +33,17 @@ The Seccond is more an extention and does log basic life cycle info as well (ver
 I wanted to have 2 so it's more clear essentially the seccond can do both its more an extension.  
 
 
-# Installation
+### Installation
 just copy RjXs-debug.ts file to a utils folder, link to it with an import and your ready to go.  
 The commands are documented so using it shouldn't be a big problem.
 
-# Background
+### Background
 I got inspired by some scripts and examples, and had some ideas about it as well.   
 And i had a need to log a lot of RxJs flows, and thus i didnt want to make the code ugly   
 by putting in between `tap(value => {console.log('Spy:', value);}` everywhere.   
 As that would run in production as well, this checks if its running in debug mode.   
 I gues maybe in some edge case you still like to use tap, but with this it can be a lot less.   
 
-# You made it till here
+## You made it till here
 Wow that's great, people actually reading my posts.. perhaps i should start a blog   
 I wish you a good day, and i hope your angular problems get solved, have luck!
