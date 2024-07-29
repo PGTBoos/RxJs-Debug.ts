@@ -1,4 +1,4 @@
-#NgRx-Debug.service.ts
+# NgRx-Debug.service.ts
 This logs all the store events, (it might overwhelm you so maybe you only want RxJs-debug.ts
 To use it :
 1. This service needs be be added in **app.module.ts** as a provider `provider :[NgRxDebugService]`
