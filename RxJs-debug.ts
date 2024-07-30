@@ -136,5 +136,34 @@ export function setRxJsLoggingLevel(level: RxJsLoggingLevel) {
   );
 }
 
+type Loggable = string | number | boolean | object | null | undefined | Loggable[] | unknown;
+    /**
+     * ConsoleLog as console.log but without the dot.
+     * Logs messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis (ea this.verbose)
+     */
+    export function ConsoleLog(verbose: boolean, ...messages: Loggable[]) {
+      if (isDevMode() && verbose) {
+        console.log(...messages);
+      }
+    }
 
+    /**
+     * ConsoleError as console.error but without the dot.
+     * Logs error messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis (ea this.verbose)
+     */
+    export function ConsoleError(verbose: boolean, ...messages: Loggable[]) {
+      if (isDevMode() && verbose) {
+        console.error(...messages);
+      }
+    }
+
+/**
+ * ConsoleWarning as console.warn but without the dot.
+ * Logs warning messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis (ea this.verbose)
+ */
+export function ConsoleWarn(verbose: boolean, ...messages: Loggable[]) {
+      if (isDevMode() && verbose) {
+        console.warn(...messages);
+      }
+    }
  
