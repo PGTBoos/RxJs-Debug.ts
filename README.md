@@ -46,8 +46,9 @@ There are 3 kind of commands:
    ```
  - **RxJs PipeFlow logger** Essentially its the pipe logger but it can log a bit more 
    ```TypeScript
-   RxJsDebugFlow(RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})`
-   
+   RxJsDebugFlow(RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})
+   // there is an overload too so it accepts also this.verbose when false it wont ouptut
+   RxJsDebugFlow(this.verbose, RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})
    ```
 
 The first command, you can use basically to replace tap to console logging, though this outputs only devmode only and is controled by a verbose boolean.   
