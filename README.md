@@ -35,7 +35,7 @@ There are 3 kind of commands:
    ConsoleWarn(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
    ConsoleError(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
    ```
- - **RxJS pipe logger** that can be used in .pipe( RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' ));
+ - **RxJS pipe logger** that can be used in `.pipe( RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' ));`
    ```TypeScript
    //basic use :
    RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' )
