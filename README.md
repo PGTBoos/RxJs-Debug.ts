@@ -19,7 +19,7 @@ To use it :
 ## Angular *RxJs-Debug.ts*
 RxJs console debug (simple), log only in devmode  
 
-I've created this script as a simple tool that can be used in place of tap and console.log commands  
+I've created this as a simple tool that can be used in place of tap and console.log commands  
 With the benefit that this command only works in developer mode.  
 
 Within the code the log levels can be altered, and it can be disabled as well.  
@@ -27,17 +27,32 @@ As you wont need this often, but rather in case of problems.
 And you would not want to log all that info in a production environment.    
 Hence this code was created.   
 
-There are 2 commands:  
- - ```Java
-   RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' )
+There are 3 kind of commands:  
+ - **Alike console.log** but only in developer mode.
+   ```TypeScript
+   //logs to console in only in debug and if a local var is set (to log on a per file base)
+   ConsoleLog(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
+   ConsoleWarn(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
+   ConsoleError(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
    ```
- - ```Java
+ - **RxJS pipe logger** that can be used in .pipe( RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' ));
+   ```TypeScript
+   //basic use :
+   RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' )
+   //to include a stack trace
+   RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:', true )
+   //to make logging dependable as well by a local variable (alike ConsoleDebug)
+   RxJsDebug(  this.verbose, RxJsLoggingLevel.INFO, 'Edit mode:', true )   //set a local var this.verbose too true for the place you want to debug.
+   ```
+ - **RxJs PipeFlow logger** Essentially its the pipe logger but it can log a bit more 
+   ```TypeScript
    RxJsDebugFlow(RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})`
+   
    ```
 
-The first command, you can use basically to replace tap to console logging, though this one runs in devmode only.   
-The Second is more an extention and does log basic life cycle info as well (verry basic sorry)  
-I wanted to have 2 so it's more clear essentially the second can do both its more an extension.  
+The first command, you can use basically to replace tap to console logging, though this outputs only devmode only and is controled by a verbose boolean.   
+The seccond command, yu can use to replace Top(x)=>console.log(x) and it will ouptut only in devmode (can make use of a verbose boolean as well).
+The third is more an extention and does log basic life cycle info as well (verry basic sorry)  
 
 
 ### Installation
