@@ -35,7 +35,19 @@ There are 3 kind of commands:
    ConsoleWarn(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
    ConsoleError(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
    ```
- - **RxJS pipe logger** that can be used in `.pipe( RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' ));`
+ - **RxJS pipe logger** that can be used from within your pipe   
+   ```TypeScript
+     return this.store.select(fromCarStores.selectCarStoresCarStores).pipe(
+      switchMap((carStores: CarStore[]) => from(catStores)),
+      filter((bs: CarStore) => bs.id === carStoreId && bs.nodeId === nodeId),
+      take(1),
+      RxJsDebug(this.verbose, RxJsLoggingLevel.INFO, 'Filtered CarStore by ID and nodeId:')
+    );
+   
+    // or directly in a pipe
+     this.store.select(state => state.batStores).pipe( RxJsDebug(RxJsLoggingLevel.INFO, 'Current batStores state in component:')).subscribe();
+   ```
+   It's command options explained :
    ```TypeScript
    //basic use :
    RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' )
