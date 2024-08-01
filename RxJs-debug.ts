@@ -2,16 +2,17 @@
 // You can add the extra logging code and keep it in production, rxjs debug can be globally switched off, or since v3 be as well controled by a boolean.
 // There is also a replacement for console.log which can be controlled on a per file boolean, and wont log in production.
 // These are all extra's you can still use console.log for those places you dont mind everybody can see it, or where it doesnt overwhelm you.
-//
+// 
+// v4 all the functions now have an overide to prefix a caller info string (so you can add 'thisfile.ts-myMethod' 
 // V3 added a function overload so RxJSDebug can use a first verbose value as well
 // v2 added ConsoleLog, it logs only in dev mode and if a (per file) based verbose bool is set
 // v1 basic rxjs logging
 
-
-
 import {Observable} from 'rxjs';
 import {tap} from 'rxjs/operators';
 import {isDevMode} from '@angular/core';
+
+
 
 //RxjS-Debug doesnt have .warn . error  as console.log does instead its controlled by a level
 export enum RxJsLoggingLevel {
@@ -31,6 +32,9 @@ export type ExtraNotifications = {
 // If you want to turn off RxJs logging, of everywhere in debug mode, set it to false
 const enableRxJsLogging = true;
 
+// If you want to turn off caller info, set it to false it provides more info but also more clutter
+const enableCallerInfo = true;
+
 // Above the minimum level, all will be shown
 let rxjsLoggingLevel = RxJsLoggingLevel.NONE;
 
@@ -44,6 +48,7 @@ export function setRxJsLoggingLevel(level: RxJsLoggingLevel) {
  *
  * Unlike `RxJsDebug`, which focuses on logging the values emitted by an observable, `RxJsDebugFlow` allows for more granular control over what gets logged. It supports additional notifications for subscribe, unsubscribe, and finalize events, providing a comprehensive view of the observable's lifecycle. This is particularly useful for tracking down memory leaks or understanding complex subscription chains.
  *
+ * @param callerInfo - A string identifying the caller of the function. This can be used to help trace the origin of logs.
  * @param level - The logging level. Determines the verbosity of the logs.
  * @param message - A message to prefix the logs with, providing context.
  * @param includeStackTrace - Optional. If true, includes the stack trace in the logs for next values and errors, aiding in debugging.
@@ -52,27 +57,34 @@ export function setRxJsLoggingLevel(level: RxJsLoggingLevel) {
  *
  * @example
  * // To log detailed information about an observable including when it is subscribed to and finalized:
- * observable.pipe( RxJsDebugFlow(RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})
+ * observable.pipe(RxJsDebugFlow('ComponentA', RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true}));
  * // There is an overload so you can also use a verbose boolean which then also must be true
- * observable.pipe( RxJsDebugFlow(this.verbose, RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true}));
- */
+ * observable.pipe(RxJsDebugFlow(this.verbose, RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true}));
+ * // There is also an overload to use a location string and a verbose boolean
+ * RxJsDebugFlow('main.ts-somefunction',this.verbose, RxJsLoggingLevel.DEBUG, 'some text of what you debug:', false, {subscribe: true, finalize: true})); */
+// Overloads for RxJsDebugFlow
+// Overloads for RxJsDebugFlow
 export function RxJsDebugFlow<T>(level: RxJsLoggingLevel, message: string, includeStackTrace?: boolean, extraNotifications?: ExtraNotifications): (source: Observable<T>) => Observable<T>;
 export function RxJsDebugFlow<T>(verbose: boolean, level: RxJsLoggingLevel, message: string, includeStackTrace?: boolean, extraNotifications?: ExtraNotifications): (source: Observable<T>) => Observable<T>;
+export function RxJsDebugFlow<T>(callerInfo: string, verbose: boolean, level: RxJsLoggingLevel, message: string, includeStackTrace?: boolean, extraNotifications?: ExtraNotifications): (source: Observable<T>) => Observable<T>;
+
 export function RxJsDebugFlow<T>(...args: any[]): (source: Observable<T>) => Observable<T> {
-  const [arg1, arg2, arg3, arg4, arg5] = args;
+  const [arg1, arg2, arg3, arg4, arg5, arg6] = args;
 
-  const verbose = typeof arg1 === 'boolean' ? arg1 : true;
-  const level = typeof arg1 === 'boolean' ? arg2 : arg1;
-  const message = typeof arg1 === 'boolean' ? arg3 : arg2;
-  const includeStackTrace = typeof arg1 === 'boolean' ? arg4 : arg3 || false;
-  const extraNotifications = typeof arg1 === 'boolean' ? arg5 : arg4 || {};
-
+  let callerInfo = typeof arg1 === 'string' ? arg1 : '';
+  const verbose = typeof arg1 === 'boolean' ? arg1 : (typeof arg2 === 'boolean' ? arg2 : true);
+  const level = typeof arg1 === 'boolean' || typeof arg1 === 'string' ? arg2 : arg1;
+  const message = typeof arg1 === 'boolean' || typeof arg1 === 'string' ? arg3 : arg2;
+  const includeStackTrace = typeof arg1 === 'boolean' || typeof arg1 === 'string' ? arg4 : arg3 || false;
+  const extraNotifications = typeof arg1 === 'boolean' || typeof arg1 === 'string' ? arg5 : arg4 || arg6 || {};
+ 
+  if(!enableCallerInfo) { callerInfo =''}
   const formatNotif = (notif: string, data?: unknown) => [
     new Date().toISOString(),
-    `[${message}: ${notif}]`,
+    `[${callerInfo}] ${message}: ${notif}`,
     data,
   ];
-
+  
   return (source: Observable<T>) => source.pipe(
     tap({
       next: val => {
@@ -121,7 +133,6 @@ export function RxJsDebugFlow<T>(...args: any[]): (source: Observable<T>) => Obs
   );
 }
 
-
 /**
  * Logs debug information for the given observable, but only in debug mode.
  * @param level - The logging level.
@@ -138,17 +149,32 @@ export function RxJsDebugFlow<T>(...args: any[]): (source: Observable<T>) => Obs
  *  .pipe( RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' ));
  *  //There is also a overload to use a verbose boolean, that then also should be true (for per file debugging)
  *  .pipe( RxJsDebug(this.verbose, RxJsLoggingLevel.INFO, 'Edit mode:' ));
+ *  
+ *  // and there is an overload to also include a location string
+ *  RxJsDebug('main.ts-MyfunctionX', this.verbose,  RxJsLoggingLevel.INFO, 'Edit mode:' )
  */
 // Overloads for RxJsDebug
 export function RxJsDebug<T>(level: RxJsLoggingLevel, message: string, includeStackTrace?: boolean): (source: Observable<T>) => Observable<T>;
 export function RxJsDebug<T>(verbose: boolean, level: RxJsLoggingLevel, message: string, includeStackTrace?: boolean): (source: Observable<T>) => Observable<T>;
+export function RxJsDebug<T>(callerInfo: string, verbose: boolean, level: RxJsLoggingLevel, message: string, includeStackTrace?: boolean): (source: Observable<T>) => Observable<T>;
 export function RxJsDebug<T>(...args: any[]): (source: Observable<T>) => Observable<T> {
-  const [arg1, arg2, arg3, arg4] = args;
+  let callerInfo: string | undefined;
+  let verbose: boolean;
+  let level: RxJsLoggingLevel;
+  let message: string;
+  let includeStackTrace: boolean;
 
-  const verbose = typeof arg1 === 'boolean' ? arg1 : true;
-  const level = typeof arg1 === 'boolean' ? arg2 : arg1;
-  const message = typeof arg1 === 'boolean' ? arg3 : arg2;
-  const includeStackTrace = typeof arg1 === 'boolean' ? arg4 : arg3 || false;
+  if (typeof args[0] === 'string') {
+    [callerInfo, verbose, level, message, includeStackTrace = false] = args;
+  } else if (typeof args[0] === 'boolean') {
+    [verbose, level, message, includeStackTrace = false] = args;
+  } else {
+    [level, message, includeStackTrace = false] = args;
+    verbose = true;
+  }
+  if(!enableCallerInfo) {callerInfo=''}
+  // Capture stack trace
+  const stackTrace = new Error().stack;
 
   return (source: Observable<T>) => source
     .pipe(
@@ -156,16 +182,18 @@ export function RxJsDebug<T>(...args: any[]): (source: Observable<T>) => Observa
         if (verbose && enableRxJsLogging && isDevMode()) {
           if (level >= rxjsLoggingLevel) {
             const typeInfo = typeof val;
-            const stackTrace = includeStackTrace ? new Error().stack : '';  // Capture stack trace if needed
+            const callerPrefix = callerInfo ? `[${callerInfo}] ` : '';
+            const logMessage = `${callerPrefix}${typeInfo} ${message}:`;
+            const fullStackTrace = includeStackTrace ? stackTrace : '';
             switch (level) {
               case RxJsLoggingLevel.ERROR:
-                console.error(`*${typeInfo}* ${message}:`, val, stackTrace);
+                console.error(logMessage, val, fullStackTrace);
                 break;
               case RxJsLoggingLevel.INFO:
-                console.log(`*${typeInfo}* ${message}:`, val, stackTrace);
+                console.log(logMessage, val, fullStackTrace);
                 break;
               case RxJsLoggingLevel.DEBUG:
-                console.warn(`*${typeInfo}* ${message}:`, val, stackTrace);
+                console.warn(logMessage, val, fullStackTrace);
                 break;
             }
           }
@@ -174,17 +202,38 @@ export function RxJsDebug<T>(...args: any[]): (source: Observable<T>) => Observa
     );
 }
 
-
 //Besides RxJs I'm adding extra console loggers, for those to show logging all you need to do is, is set a local value to true ea this.verbose
 type Loggable = string | number | boolean | object | null | undefined | Loggable[] | unknown;
 
 /**
  * ConsoleLog as console.log but without the dot.
  * Logs messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis
+ * There is an overide function so we can put in callerInfo as well
  */
-export function ConsoleLog(verbose: boolean, ...messages: Loggable[]) {
+export function ConsoleLog(...messages: Loggable[]): void;
+export function ConsoleLog(verbose: boolean, ...messages: Loggable[]): void;
+export function ConsoleLog(callerInfo: string, verbose: boolean, ...messages: Loggable[]): void;
+
+export function ConsoleLog(...args: any[]): void {
+  let callerInfo: string | undefined;
+  let verbose: boolean;
+  let messages: Loggable[];
+  if(!enableCallerInfo) {callerInfo=''}
+  if (typeof args[0] === 'string' && typeof args[1] === 'boolean') {
+    // Overload with callerInfo and verbose
+    [callerInfo, verbose, ...messages] = args;
+  } else if (typeof args[0] === 'boolean') {
+    // Overload with verbose
+    [verbose, ...messages] = args;
+  } else {
+    // Original overload
+    verbose = true;
+    messages = args;
+  }
+
   if (isDevMode() && verbose) {
-    console.log(...messages);
+    const prefix = callerInfo ? `[${callerInfo}] ` : '';
+    console.log(prefix, ...messages);
   }
 }
 
@@ -192,9 +241,30 @@ export function ConsoleLog(verbose: boolean, ...messages: Loggable[]) {
  * ConsoleError as console.error but without the dot.
  * Logs error messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis
  */
-export function ConsoleError(verbose: boolean, ...messages: Loggable[]) {
+export function ConsoleError(...messages: Loggable[]): void;
+export function ConsoleError(verbose: boolean, ...messages: Loggable[]): void;
+export function ConsoleError(callerInfo: string, verbose: boolean, ...messages: Loggable[]): void;
+
+export function ConsoleError(...args: any[]): void {
+  let callerInfo: string | undefined;
+  let verbose: boolean;
+  let messages: Loggable[];
+  if(!enableCallerInfo) {callerInfo=''}
+  if (typeof args[0] === 'string' && typeof args[1] === 'boolean') {
+    // Overload with callerInfo and verbose
+    [callerInfo, verbose, ...messages] = args;
+  } else if (typeof args[0] === 'boolean') {
+    // Overload with verbose
+    [verbose, ...messages] = args;
+  } else {
+    // Original overload
+    verbose = true;
+    messages = args;
+  }
+
   if (isDevMode() && verbose) {
-    console.error(...messages);
+    const prefix = callerInfo ? `[${callerInfo}] ` : '';
+    console.error(prefix, ...messages);
   }
 }
 
@@ -202,8 +272,29 @@ export function ConsoleError(verbose: boolean, ...messages: Loggable[]) {
  * ConsoleWarning as console.warn but without the dot.
  * Logs warning messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis
  */
-export function ConsoleWarn(verbose: boolean, ...messages: Loggable[]) {
+export function ConsoleWarn(...messages: Loggable[]): void;
+export function ConsoleWarn(verbose: boolean, ...messages: Loggable[]): void;
+export function ConsoleWarn(callerInfo: string, verbose: boolean, ...messages: Loggable[]): void;
+
+export function ConsoleWarn(...args: any[]): void {
+  let callerInfo: string | undefined;
+  let verbose: boolean;
+  let messages: Loggable[];
+  if(!enableCallerInfo) {callerInfo=''}
+  if (typeof args[0] === 'string' && typeof args[1] === 'boolean') {
+    // Overload with callerInfo and verbose
+    [callerInfo, verbose, ...messages] = args;
+  } else if (typeof args[0] === 'boolean') {
+    // Overload with verbose
+    [verbose, ...messages] = args;
+  } else {
+    // Original overload
+    verbose = true;
+    messages = args;
+  }
+
   if (isDevMode() && verbose) {
-    console.warn(...messages);
+    const prefix = callerInfo ? `[${callerInfo}] ` : '';
+    console.warn(prefix, ...messages);
   }
 }
