@@ -29,20 +29,20 @@ Hence this code was created.
 
 There are 3 kind of commands:  
  - **Alike console.log** but only in developer mode.
-   ```TypeScript
-   //logs to console in only in debug and if a local var is set (to log on a per file base)
-   ConsoleLog(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
-   ConsoleWarn(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
-   ConsoleError(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );
-   ```
-   >
-   > ConsoleLog as console.log but without the dot.
-   > Logs messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis
-   > There is an overide function so we can put in callerInfo as well
-   >
-   > `ConsoleLog(...messages: Loggable[])`;     **simple logging**  (logable can be a series of vars of any type)
-   > `ConsoleLog(verbose: boolean, ...messages: Loggable[])`  **logging is verbose = true**
-   > `ConsoleLog(callerInfo: string, verbose: boolean, ...messages: Loggable[]` **mention some calller info identification file or function**
+   ```TypeScript  
+   //logs to console in only in debug and if a local var is set (to log on a per file base)  
+   ConsoleLog(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );  
+   ConsoleWarn(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );  
+   ConsoleError(this.verbose, 'after which anything you did as with console', addindVars, debuggingarrays, etc );  
+   ```  
+   >  
+   > ConsoleLog as console.log but without the dot.  
+   > Logs messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis  
+   > There is an overide function so we can put in callerInfo as well  
+   >  
+   > `ConsoleLog(...messages: Loggable[])`;     **simple logging**  (logable can be a series of vars of any type)  
+   > `ConsoleLog(verbose: boolean, ...messages: Loggable[])`  **logging is verbose = true**  
+   > `ConsoleLog(callerInfo: string, verbose: boolean, ...messages: Loggable[]` **mention some calller info identification file or function**  
 
 
 
