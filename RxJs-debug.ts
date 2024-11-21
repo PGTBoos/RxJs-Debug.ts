@@ -206,15 +206,117 @@ export function RxJsDebug<T>(...args: any[]): (source: Observable<T>) => Observa
 type Loggable = string | number | boolean | object | null | undefined | Loggable[] | unknown;
 
 /**
- * ConsoleLog as console.log but without the dot.
- * Logs messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis
- * There is an overide function so we can put in callerInfo as well
+ * Logs debug information for the given observable, but only in debug mode.
+ * @param level - The logging level.
+ * @param message - The log message.
+ * @returns A function that takes an Observable and logs information based on the logging level.
+ * @param includeStackTrace - Whether to include the stack trace in the log.
+ * @returns A function that takes an Observable and logs information based on the logging level.
+ *
+ * @example
+ *  //this function replaces the following debug tap code:
+ *  .pipe( tap(editMode => console.log('Edit mode:', editMode))  );
+ *
+ *  //with:
+ *  .pipe( RxJsDebug(  RxJsLoggingLevel.INFO, 'Edit mode:' ));
+ *  //There is also a overload to use a verbose boolean, that then also should be true (for per file debugging)
+ *  .pipe( RxJsDebug(this.verbose, RxJsLoggingLevel.INFO, 'Edit mode:' ));
+ *
+ *  // and there is an overload to also include a location string
+ *  RxJsDebug('main.ts-MyfunctionX', this.verbose,  RxJsLoggingLevel.INFO, 'Edit mode:' )
+ */
+// Overloads for RxJsDebug
+export function RxJsDebug<T>(level: RxJsLoggingLevel, message: string, includeStackTrace?: boolean): (source: Observable<T>) => Observable<T>;
+export function RxJsDebug<T>(verbose: boolean, level: RxJsLoggingLevel, message: string, includeStackTrace?: boolean): (source: Observable<T>) => Observable<T>;
+export function RxJsDebug<T>(callerInfo: string, verbose: boolean, level: RxJsLoggingLevel, message: string, includeStackTrace?: boolean): (source: Observable<T>) => Observable<T>;
+export function RxJsDebug<T>(...args: any[]): (source: Observable<T>) => Observable<T> {
+  let callerInfo: string | undefined;
+  let verbose: boolean;
+  let level: RxJsLoggingLevel;
+  let message: string;
+  let includeStackTrace: boolean;
+
+  if (typeof args[0] === 'string') {
+    [callerInfo, verbose, level, message, includeStackTrace = false] = args;
+  } else if (typeof args[0] === 'boolean') {
+    [verbose, level, message, includeStackTrace = false] = args;
+  } else {
+    [level, message, includeStackTrace = false] = args;
+    verbose = true;
+  }
+
+  if (!enableCallerInfo) {
+    callerInfo = '';
+  }
+
+  // Capture stack trace
+  const stackTrace = new Error().stack;
+
+  return (source: Observable<T>) => source
+    .pipe(
+      tap(val => {
+        if (verbose && enableRxJsLogging && isDevMode()) {
+          if (level >= rxjsLoggingLevel) {
+            const typeInfo = typeof val;
+            let cssFormatting: string;
+            let consoleMethod: (...data: any[]) => void;
+
+            switch (level) {
+              case RxJsLoggingLevel.ERROR:
+                cssFormatting = 'color: white;background:red;';
+                consoleMethod = console.error;
+                break;
+              case RxJsLoggingLevel.DEBUG:
+                cssFormatting ='color: brown;background:orange;';
+                consoleMethod = console.warn;
+                break;
+              case RxJsLoggingLevel.INFO:
+              default:
+                cssFormatting = 'color: #368fd7;background:#d2e1ec;';
+                consoleMethod = console.log;
+                break;
+            }
+
+            if (enableCallerInfo && callerInfo) {
+              let mtype = '';
+              if (level === RxJsLoggingLevel.ERROR) { mtype = ' [ERROR message]'; }
+              if (level === RxJsLoggingLevel.DEBUG) { mtype = ' [DEBUG message]'; }
+              if (level === RxJsLoggingLevel.INFO) { mtype = ' [INFO message]'; }
+              if (level === RxJsLoggingLevel.NONE) { mtype = ' [message]'; }
+              const styledCallerInfo = `%c<${callerInfo + mtype}>`;
+              const restOfMessage = `${typeInfo} ${message}:`;
+              consoleMethod(styledCallerInfo, cssFormatting, restOfMessage, val, includeStackTrace ? stackTrace : '');
+            } else {
+              consoleMethod(`${typeInfo} ${message}:`, val, includeStackTrace ? stackTrace : '');
+            }
+          }
+        }
+      })
+    );
+}
+
+
+//Besides RxJs I'm adding extra console loggers, for those to show logging all you need to do is, is set a local value to true ea this.verbose
+type Loggable = string | number | boolean | object | null | undefined | Loggable[] | unknown;
+
+/**
+ * ConsoleLog logs console.log (dev mode only)
+ * - Acts as a wrapper around `console.error` but excludes the leading dot prefix.
+ * - Supports multiple usage patterns for different levels of customization:
+ *   1. Basic error logging (debug mode based on a global or per-file flag).
+ *   2. Verbose logging, conditionally controlled by a `verbose` boolean.
+ *   3. Includes optional caller information for more detailed debugging.
+ *
+ * @param callerInfo (Optional) A string providing context about where the error originated (e.g., function or file name).
+ * @param verbose (Optional) A boolean to enable/disable verbose logging, useful for per-file debug control.
+ * @param messages An array of `Loggable` elements to be logged as part of the error message.
  */
 export function ConsoleLog(...messages: Loggable[]): void;
 export function ConsoleLog(verbose: boolean, ...messages: Loggable[]): void;
 export function ConsoleLog(callerInfo: string, verbose: boolean, ...messages: Loggable[]): void;
 
 export function ConsoleLog(...args: any[]): void {
+  if(!isDevMode()){return;}
   let callerInfo: string | undefined;
   let verbose: boolean;
   let messages: Loggable[];
@@ -232,14 +334,29 @@ export function ConsoleLog(...args: any[]): void {
   }
 
   if (isDevMode() && verbose) {
-    const prefix = callerInfo ? `[${callerInfo}] ` : '';
-    console.log(prefix, ...messages);
+    const prefix = callerInfo ? `%c[${callerInfo}] \n` : '';
+    const prefixCSSFormatting = 'color: #edf3f7; background-color: #8bc4df;'; // Darker background for prefix
+    const infoMessageCSSFormating = 'color: #368fd7; background: #d2e1ec;';
+
+    if (enableCallerInfo && prefix) {
+      console.log(`${prefix}%c`, prefixCSSFormatting, infoMessageCSSFormating, ...messages);
+    } else {
+      console.log(`%c`, infoMessageCSSFormating, ...messages);
+    }
   }
 }
 
 /**
- * ConsoleError as console.error but without the dot.
- * Logs error messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis
+ * ConsoleError logs is a replacement for console.error but doesnt log in normal mode dont use if you want to see an error!
+ * - Acts as a wrapper around `console.error` but excludes the leading dot prefix.
+ * - Supports multiple usage patterns for different levels of customization:
+ *   1. Basic error logging (debug mode based on a global or per-file flag).
+ *   2. Verbose logging, conditionally controlled by a `verbose` boolean.
+ *   3. Includes optional caller information for more detailed debugging.
+ *
+ * @param callerInfo (Optional) A string providing context about where the error originated (e.g., function or file name).
+ * @param verbose (Optional) A boolean to enable/disable verbose logging, useful for per-file debug control.
+ * @param messages An array of `Loggable` elements to be logged as part of the error message.
  */
 export function ConsoleError(...messages: Loggable[]): void;
 export function ConsoleError(verbose: boolean, ...messages: Loggable[]): void;
@@ -263,14 +380,23 @@ export function ConsoleError(...args: any[]): void {
   }
 
   if (isDevMode() && verbose) {
-    const prefix = callerInfo ? `[${callerInfo}] ` : '';
-    console.error(prefix, ...messages);
+    const prefix = callerInfo ? `%c [${callerInfo}] ` : '';
+    if (enableCallerInfo){console.error(prefix,errorMessageCSSformatting, ...messages);}
+    else {console.error(...messages);}
   }
 }
 
 /**
- * ConsoleWarning as console.warn but without the dot.
- * Logs warning messages to the console, but only in debug mode, based upon a leading boolean which you can set on a per file basis
+ * ConsoleWarn is a replacement for console.warning for extra attention (dev mode only)
+ * - Acts as a wrapper around `console.error` but excludes the leading dot prefix.
+ * - Supports multiple usage patterns for different levels of customization:
+ *   1. Basic error logging (debug mode based on a global or per-file flag).
+ *   2. Verbose logging, conditionally controlled by a `verbose` boolean.
+ *   3. Includes optional caller information for more detailed debugging.
+ *
+ * @param callerInfo (Optional) A string providing context about where the error originated (e.g., function or file name).
+ * @param verbose (Optional) A boolean to enable/disable verbose logging, useful for per-file debug control.
+ * @param messages An array of `Loggable` elements to be logged as part of the error message.
  */
 export function ConsoleWarn(...messages: Loggable[]): void;
 export function ConsoleWarn(verbose: boolean, ...messages: Loggable[]): void;
@@ -280,7 +406,7 @@ export function ConsoleWarn(...args: any[]): void {
   let callerInfo: string | undefined;
   let verbose: boolean;
   let messages: Loggable[];
-  if(!enableCallerInfo) {callerInfo=''}
+  if (!enableCallerInfo) {callerInfo = ''}
   if (typeof args[0] === 'string' && typeof args[1] === 'boolean') {
     // Overload with callerInfo and verbose
     [callerInfo, verbose, ...messages] = args;
@@ -294,7 +420,55 @@ export function ConsoleWarn(...args: any[]): void {
   }
 
   if (isDevMode() && verbose) {
-    const prefix = callerInfo ? `[${callerInfo}] ` : '';
-    console.warn(prefix, ...messages);
+    const prefix = callerInfo ? `%c [${callerInfo}] ` : '';
+    if (enableCallerInfo) {console.warn(prefix, warningMessageCSSformatting, ...messages);} else {console.warn(...messages);}
   }
 }
+
+
+  /**
+   * ConsoleFlag logs in purple for extra attention (dev mode only)
+   * - Acts as a wrapper around `console.error` but excludes the leading dot prefix.
+   * - Supports multiple usage patterns for different levels of customization:
+   *   1. Basic error logging (debug mode based on a global or per-file flag).
+   *   2. Verbose logging, conditionally controlled by a `verbose` boolean.
+   *   3. Includes optional caller information for more detailed debugging.
+   *
+   * @param callerInfo (Optional) A string providing context about where the error originated (e.g., function or file name).
+   * @param verbose (Optional) A boolean to enable/disable verbose logging, useful for per-file debug control.
+   * @param messages An array of `Loggable` elements to be logged as part of the error message.
+   */
+
+  export function ConsoleFlag(...messages: Loggable[]): void;
+  export function ConsoleFlag(verbose: boolean, ...messages: Loggable[]): void;
+  export function ConsoleFlag(callerInfo: string, verbose: boolean, ...messages: Loggable[]): void;
+  export function ConsoleFlag(...args: any[]): void {
+    if (!isDevMode()) {return;} //early return if not in dev mode
+    let callerInfo: string | undefined;
+    let verbose: boolean;
+    let messages: Loggable[];
+    if (!enableCallerInfo) {callerInfo = ''}
+    if (typeof args[0] === 'string' && typeof args[1] === 'boolean') {
+      // Overload with callerInfo and verbose
+      [callerInfo, verbose, ...messages] = args;
+    } else if (typeof args[0] === 'boolean') {
+      // Overload with verbose
+      [verbose, ...messages] = args;
+    } else {
+      // Original overload
+      verbose = true;
+      messages = args;
+    }
+
+    if (isDevMode() && verbose) {
+      const prefix = callerInfo ? `[${callerInfo}]` : '';
+      const prefixCSS = 'color: white; background-color: magenta; padding: 2px 5px; border-radius: 3px;';
+      const messageCSS = 'color: white; background-color: #9c27b0; padding: 2px 5px; margin-left: 5px; border-radius: 3px;';
+
+      if (enableCallerInfo && prefix) {
+        console.warn(`%c${prefix} %c${messages.join(' ')}`, prefixCSS, messageCSS);
+      } else {
+        console.warn(`%c${messages.join(' ')}`, messageCSS);
+      }
+    }
+  }
